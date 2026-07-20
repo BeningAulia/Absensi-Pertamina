@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard Admin{% endblock %}
+{% block content %}
+<div class="stat-grid">
+    <div class="stat-box">
+        <i class="fas fa-users" style="color:var(--pr-blue); font-size:24px;"></i>
+        <div class="value">{{ pegawai_list|length }}</div>
+        <div style="color:var(--text-muted);">Pegawai</div>
+    </div>
+    <div class="stat-box">
+        <i class="fas fa-clock" style="color:var(--pr-red); font-size:24px;"></i>
+        <div class="value">
+            {% set total = 0 %}
+            {% for group in grouped_absensi %}{% set total = total + group.entries|length %}{% endfor %}
+            {{ total }}
+        </div>
+        <div style="color:var(--text-muted);">Data Ditampilkan</div>
+    </div>
+    <div class="stat-box">
+        <i class="fas fa-user-clock" style="color:var(--pr-accent); font-size:24px;"></i>
+        <div class="value">{{ pending_list|length }}</div>
+        <div style="color:var(--text-muted);">Menunggu</div>
+    </div>
+</div>
+
+{% if pending_list %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-user-check"></i> Persetujuan Pendaftaran</h3>
+        <form action="/admin/approve_all" method="POST"><button class="btn btn-primary btn-sm"><i class="fas fa-check-double"></i> Setujui Semua</button></form>
+    </div>
+    {% for p in pending_list %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+        <div><strong>{{ p.nama }}</strong> ({{ p.nip }}) <span class="badge" style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-size:11px;">Menunggu</span></div>
+        <div style="display:flex; gap:6px;">
+            <form action="/admin/approve_pegawai/{{ p.id }}" method="POST"><button class="btn btn-outline btn-sm"><i class="fas fa-check"></i> Setujui</button></form>
+            <form action="/admin/reject_pegawai/{{ p.id }}" method="POST" class="confirm-form"><button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Tolak</button></form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-clipboard-list"></i> Log Absensi</h3>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap;">
+        <form method="GET" action="/admin" style="display:flex; gap:8px;">
+            <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="YYYY-MM-DD / YYYY-MM" style="width:200px;">
+            <button type="submit" class="btn btn-outline btn-sm">Cari</button>
+            <a href="/admin" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <!-- PETA -->
+    <div id="map-container"><div id="map" style="height:400px;"></div></div>
+
+    {% if grouped_absensi %}
+        {% for group in grouped_absensi %}
+        <div style="margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,61,165,0.03); padding:8px 12px; border-radius:8px; margin-bottom:8px;">
+                <h4 style="margin:0;"><i class="fas fa-calendar-day"></i> {{ group.tanggal.strftime('%d %B %Y') }} <small>({{ group.entries|length }})</small></h4>
+                <div style="display:flex; gap:6px;">
+                    <a href="/admin/download_absensi_harian/{{ group.tanggal.strftime('%Y-%m-%d') }}" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Excel</a>
+                    <form action="/admin/hapus_absensi_tanggal/{{ group.tanggal.strftime('%Y-%m-%d') }}" method="POST" class="confirm-form"><button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Hapus Semua</button></form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Nama</th><th>NIP</th><th>Waktu</th><th>Lokasi</th><th></th></tr></thead>
+                    <tbody>
+                        {% for a in group.entries|sort(attribute='waktu') %}
+                        <tr>
+                            <td><strong>{{ a.pegawai.nama }}</strong></td>
+                            <td>{{ a.pegawai.nip }}</td>
+                            <td>{{ a.waktu.strftime('%H:%M:%S') }}</td>
+                            <td><a href="https://maps.google.com/?q={{ a.latitude }},{{ a.longitude }}" target="_blank" class="btn btn-outline btn-sm">Peta</a></td>
+                            <td>
+                                <form action="/admin/hapus_absensi/{{ a.id }}" method="POST" class="confirm-form"><button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align:center;">Tidak ada data absensi.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-users"></i> Daftar Pegawai</h3>
+    {% for p in pegawai_list %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+        <div>
+            <strong>{{ p.nama }}</strong> ({{ p.nip }})
+            {% if p.status == 'pending' %}
+                <span class="badge" style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:12px;font-size:11px;">Pending</span>
+            {% else %}
+                <span class="badge" style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:12px;font-size:11px;">Aktif</span>
+            {% endif %}
+        </div>
+        <div style="display:flex; gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="openEditModal({{ p.id }}, '{{ p.nama|e }}', '{{ p.nip|e }}')">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <form action="/admin/hapus_pegawai/{{ p.id }}" method="POST" class="confirm-form">
+                <button class="btn btn-danger btn-sm"><i class="fas fa-user-minus"></i> Hapus</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <p>Belum ada pegawai.</p>
+    {% endfor %}
+</div>
+
+<div class="card" style="border-left:4px solid var(--danger);">
+    <h3 style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> Zona Berbahaya</h3>
+    <p>Hapus akun admin (harus daftar ulang).</p>
+    <form action="/admin/hapus_admin" method="POST" class="confirm-form"><button class="btn btn-danger"><i class="fas fa-trash-alt"></i> Hapus Admin</button></form>
+</div>
+
+<!-- MODAL EDIT PEGAWAI -->
+<div id="edit-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-dialog">
+        <h3><i class="fas fa-edit"></i> Edit Pegawai</h3>
+        <form id="edit-form" method="POST">
+            <div class="form-group">
+                <label>Nama</label>
+                <input type="text" name="nama" id="edit-nama" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>NIP</label>
+                <input type="text" name="nip" id="edit-nip" class="form-control" required>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="button" class="btn btn-outline" onclick="closeEditModal()">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Data peta dari server (hanya hari ini atau sesuai filter)
+    const mapData = [
+        {% for m in map_data %}
+            {
+                nama: "{{ m.nama|replace('"', '\\"') }}",
+                nip: "{{ m.nip }}",
+                waktu: "{{ m.waktu }}",
+                lat: {{ m.lat or 'null' }},
+                lon: {{ m.lon or 'null' }}
+            },
+        {% endfor %}
+    ];
+
+    function initMap() {
+        if (typeof L === 'undefined') {
+            document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:red;">Peta gagal dimuat. Cek internet.</div>';
+            return;
+        }
+        const points = mapData.filter(p => p.lat && p.lon);
+        let cLat = -6.2088, cLon = 106.8456;   // ganti dengan koordinat kantor Pertamina Anda
+        if (points.length) {
+            cLat = points.reduce((s, p) => s + p.lat, 0) / points.length;
+            cLon = points.reduce((s, p) => s + p.lon, 0) / points.length;
+        }
+        const map = L.map('map').setView([cLat, cLon], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        points.forEach(p => {
+            const marker = L.marker([p.lat, p.lon]).addTo(map);
+            marker.bindPopup(`
+                <b>${p.nama}</b><br>
+                NIP: ${p.nip}<br>
+                Waktu: ${p.waktu}<br>
+                <a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">Buka di Google Maps</a>
+            `);
+        });
+    }
+
+    function openEditModal(id, nama, nip) {
+        document.getElementById('edit-form').action = '/admin/edit_pegawai/' + id;
+        document.getElementById('edit-nama').value = nama;
+        document.getElementById('edit-nip').value = nip;
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+    function closeEditModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+    document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    document.querySelectorAll('.confirm-form').forEach(f => {
+        f.addEventListener('submit', e => {
+            e.preventDefault();
+            showConfirm('Apakah Anda yakin ingin menghapus data ini?', f);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

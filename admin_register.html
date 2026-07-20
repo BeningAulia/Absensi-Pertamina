@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block page_title %}Daftar Admin{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 450px; margin: 40px auto;">
+    <a href="/admin/login" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-weight: 500; margin-bottom: 16px;">
+        <i class="fas fa-arrow-left"></i> Kembali ke Login
+    </a>
+    <h2 style="text-align: center; color: var(--pr-blue-dark); margin-bottom: 24px;">
+        <i class="fas fa-user-shield"></i> Daftar Admin
+    </h2>
+
+    <form id="adminRegisterForm" action="/admin/register" method="POST">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+            <i class="fas fa-key"></i> Buat Admin
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('adminRegisterForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnHTML = submitBtn.innerHTML;
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Menyimpan...';
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHTML;
+        }
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        setLoading(true);
+
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            setLoading(false);
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect || '/admin/login';
+                }, 1500);
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            setLoading(false);
+            showToast('Terjadi kesalahan jaringan.', 'error');
+        });
+    });
+});
+</script>
+{% endblock %}

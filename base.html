@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Absensi Pertamina</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Style Utama -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .leaflet-default-icon-path {
+            background-image: url(https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png);
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='logo-pertamina.png') }}" alt="Pertamina" class="sidebar-logo">
+            <h1>SIMPEG</h1>
+            <small>Absensi Digital</small>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-camera"></i> <span>Absensi</span></a>
+            <a href="/register" class="{% if request.path == '/register' %}active{% endif %}"><i class="fas fa-user-plus"></i> <span>Register</span></a>
+            {% if session.get('admin_id') %}
+            <a href="/admin" class="{% if request.path == '/admin' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> <span>Admin</span></a>
+            <a href="/admin/logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+            {% else %}
+            <a href="/admin/login" class="{% if request.path == '/admin/login' %}active{% endif %}"><i class="fas fa-lock"></i> <span>Admin</span></a>
+            {% endif %}
+        </nav>
+        <div class="sidebar-footer">
+            <small>&copy; 2026 Pertamina</small>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div style="display: flex; align-items: center;">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="topbar-title">
+                    {% block page_title %}Dashboard{% endblock %}
+                </div>
+            </div>
+            <div class="topbar-user">
+                <i class="fas fa-user-circle"></i>
+                {% if session.get('admin_username') %}
+                    {{ session['admin_username'] }}
+                {% else %}
+                    Guest
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+
+        <footer class="footer">
+            &copy; 2026 PT Pertamina (Persero) - Sistem Absensi Cerdas
+        </footer>
+    </main>
+
+    <!-- TOAST GLOBAL -->
+    <div id="toast-global"></div>
+
+    <!-- MODAL KONFIRMASI -->
+    <div id="confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-dialog">
+            <h3><i class="fas fa-question-circle"></i> Konfirmasi</h3>
+            <p id="confirm-message"></p>
+            <div class="modal-actions">
+                <button id="confirm-yes" class="btn btn-danger"><i class="fas fa-check"></i> Ya</button>
+                <button id="confirm-no" class="btn btn-outline"><i class="fas fa-times"></i> Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Toast & Modal Script -->
+    <script>
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-global');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation',
+                info: 'fa-circle-info',
+                warning: 'fa-triangle-exclamation'
+            };
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span class="toast-msg">${message}</span><i class="fa-solid fa-xmark toast-close"></i>`;
+            container.appendChild(toast);
+            const remove = () => {
+                if (!toast.parentNode) return;
+                toast.classList.add('removing');
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+            };
+            const timer = setTimeout(remove, 6000);
+            toast.addEventListener('click', (e) => { clearTimeout(timer); remove(); });
+        }
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                document.addEventListener('DOMContentLoaded', () => {
+                    {% for category, message in messages %}
+                        showToast("{{ message | replace('\\', '\\\\') | replace('"', '\\"') }}", "{{ category }}");
+                    {% endfor %}
+                });
+            {% endif %}
+        {% endwith %}
+
+        let pendingForm = null;
+        function showConfirm(message, form) {
+            pendingForm = form;
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+        document.getElementById('confirm-yes').onclick = () => {
+            if (pendingForm) pendingForm.submit();
+            document.getElementById('confirm-modal').style.display = 'none';
+            pendingForm = null;
+        };
+        document.getElementById('confirm-no').onclick = () => {
+            document.getElementById('confirm-modal').style.display = 'none';
+            pendingForm = null;
+        };
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) { this.style.display = 'none'; pendingForm = null; }
+        });
+
+        // Sidebar toggle (hanya di ponsel)
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-open');
+        });
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 480 && !sidebar.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('sidebar-open');
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

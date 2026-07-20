@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block page_title %}Registrasi Pegawai{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="color: var(--pr-blue-dark); text-align: center;"><i class="fas fa-user-plus"></i> Registrasi Pegawai</h2>
+    <form id="registerForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" name="nama" id="namaInput" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>NIP</label>
+            <input type="text" name="nip" id="nipInput" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Unggah Foto Wajah (min. 3)</label>
+            <small>Format JPG/PNG, maks. 5MB.</small>
+            <div style="display: flex; gap: 8px; margin: 8px 0;">
+                <i class="fas fa-user"></i> Depan &nbsp;
+                <i class="fas fa-user" style="transform: rotate(-25deg);"></i> Kiri &nbsp;
+                <i class="fas fa-user" style="transform: rotate(25deg);"></i> Kanan
+            </div>
+            <div id="filePreview" class="file-preview-container"></div>
+            <div class="file-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="selectFileBtn"><i class="fas fa-folder-open"></i> Pilih File</button>
+                <button type="button" class="btn btn-outline btn-sm" id="openCameraBtn"><i class="fas fa-camera"></i> Ambil Foto</button>
+            </div>
+            <input type="file" id="hiddenFileInput" accept=".jpg,.jpeg,.png" multiple style="display:none;">
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block"><i class="fas fa-save"></i> Simpan Pegawai</button>
+    </form>
+</div>
+
+<!-- Modal Kamera -->
+<div id="cameraModal" class="camera-modal-overlay" style="display: none;">
+    <div class="camera-modal">
+        <h3>Ambil Foto</h3>
+        <div class="video-box">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="cameraCanvas" style="display:none;"></canvas>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="btn btn-primary btn-sm" id="captureBtn"><i class="fas fa-camera"></i> Jepret</button>
+            <button class="btn btn-outline btn-sm" id="closeCameraBtn"><i class="fas fa-times"></i> Tutup</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    // Semua script sebelumnya untuk registrasi (preview, kamera, validasi) – tidak berubah
+    // Masukkan script yang sudah ada (dari versi sebelumnya) di sini.
+    // Karena panjang, saya asumsikan Anda menyalin script yang lama (dari register.html yang sudah disempurnakan).
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedFiles = [];
+        const MAX_FILES = 10;
+        const ALLOWED = ['jpg','jpeg','png'];
+        const MAX_SIZE = 5 * 1024 * 1024;
+
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const filePreview = document.getElementById('filePreview');
+        const selectFileBtn = document.getElementById('selectFileBtn');
+        const hiddenFileInput = document.getElementById('hiddenFileInput');
+        const openCameraBtn = document.getElementById('openCameraBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+        const namaInput = document.getElementById('namaInput');
+        const nipInput = document.getElementById('nipInput');
+
+        let cameraStream = null;
+
+        function renderPreview() {
+            filePreview.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'file-preview-item';
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.onload = () => URL.revokeObjectURL(img.src);
+                    div.appendChild(img);
+                }
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-remove';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.onclick = (e) => {
+                    e.preventDefault();
+                    selectedFiles.splice(index, 1);
+                    renderPreview();
+                };
+                div.appendChild(removeBtn);
+                filePreview.appendChild(div);
+            });
+        }
+
+        function addFiles(newFiles) {
+            const valid = Array.from(newFiles).filter(f => {
+                const ext = f.name.split('.').pop().toLowerCase();
+                if (!ALLOWED.includes(ext)) { showToast(`Format ${f.name} tidak diizinkan`, 'error'); return false; }
+                if (f.size > MAX_SIZE) { showToast(`${f.name} > 5MB`, 'error'); return false; }
+                return true;
+            });
+            if (valid.length) {
+                selectedFiles = selectedFiles.concat(valid).slice(0, MAX_FILES);
+                renderPreview();
+            }
+        }
+
+        selectFileBtn.onclick = () => hiddenFileInput.click();
+        hiddenFileInput.onchange = (e) => { if (e.target.files.length) { addFiles(e.target.files); e.target.value = ''; } };
+
+        openCameraBtn.onclick = async () => {
+            cameraModal.style.display = 'flex';
+            const resos = [ [1920,1080],[1280,720],[640,480],[320,240] ];
+            for (const [w,h] of resos) {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal:w }, height: { ideal:h }, facingMode:'user' } });
+                    cameraVideo.srcObject = cameraStream;
+                    await cameraVideo.play();
+                    return;
+                } catch(e){}
+            }
+            showToast('Kamera tidak tersedia', 'error');
+            cameraModal.style.display = 'none';
+        };
+
+        function closeCamera() {
+            if (cameraStream) { cameraStream.getTracks().forEach(t=>t.stop()); cameraStream = null; }
+            cameraVideo.srcObject = null;
+            cameraModal.style.display = 'none';
+        }
+        closeCameraBtn.onclick = closeCamera;
+        cameraModal.onclick = (e) => { if (e.target===cameraModal) closeCamera(); };
+
+        captureBtn.onclick = () => {
+            if (!cameraStream) return;
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            const ctx = cameraCanvas.getContext('2d');
+            ctx.translate(cameraCanvas.width,0); ctx.scale(-1,1);
+            ctx.drawImage(cameraVideo,0,0);
+            ctx.setTransform(1,0,0,1,0,0);
+            cameraCanvas.toBlob(blob => {
+                if (blob) {
+                    const file = new File([blob], `captured_${Date.now()}.jpg`, {type:'image/jpeg'});
+                    addFiles([file]);
+                    closeCamera();
+                }
+            }, 'image/jpeg', 0.92);
+        };
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            if (!namaInput.value.trim() || !nipInput.value.trim()) { showToast('Nama dan NIP wajib diisi', 'error'); return; }
+            if (selectedFiles.length < 3) { showToast('Minimal 3 foto', 'error'); return; }
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Menyimpan...';
+            const fd = new FormData();
+            fd.append('nama', namaInput.value.trim());
+            fd.append('nip', nipInput.value.trim());
+            selectedFiles.forEach(f => fd.append('faces', f, f.name));
+            fetch(form.action, {
+                method:'POST',
+                headers:{'X-Requested-With':'XMLHttpRequest'},
+                body:fd
+            })
+            .then(r=>r.json())
+            .then(data=>{
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Pegawai';
+                if (data.status==='success') {
+                    showToast(data.message, 'success');
+                    selectedFiles = []; renderPreview();
+                    namaInput.value = ''; nipInput.value = '';
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(()=>{
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Pegawai';
+                showToast('Gagal menyimpan', 'error');
+            });
+        };
+        renderPreview();
+    });
+</script>
+{% endblock %}

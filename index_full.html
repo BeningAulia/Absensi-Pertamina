@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block page_title %}Absensi Wajah{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center; max-width:500px; margin: 0 auto;">
+    <div style="margin-bottom: 8px;">
+        <span class="fa-stack fa-3x">
+            <i class="fas fa-circle fa-stack-2x" style="color: var(--pr-light);"></i>
+            <i class="fas fa-camera-retro fa-stack-1x" style="color: var(--pr-red);"></i>
+        </span>
+    </div>
+    <h2 style="color: var(--pr-blue-dark);">Absensi Wajah</h2>
+    <p style="color: var(--text-muted);">Hadapkan wajah ke kamera, lalu klik <strong>"Ambil Absen"</strong></p>
+    <div class="video-box">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+    <button id="snap" class="btn btn-primary btn-block"><i class="fas fa-camera"></i> Ambil Absen</button>
+    <div id="status" style="margin-top: 16px;"></div>
+    <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center;">
+        <a href="/register" class="btn btn-outline btn-sm"><i class="fas fa-user-plus"></i> Daftar Pegawai</a>
+        <a href="/admin/login" class="btn btn-outline btn-sm"><i class="fas fa-lock"></i> Admin</a>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+{% endblock %}
