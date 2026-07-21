@@ -11,7 +11,7 @@
         <i class="fas fa-clock" style="color:var(--pr-red); font-size:24px;"></i>
         <div class="value">
             {% set total = 0 %}
-            {% for group in grouped_absensi %}{% set total = total + group.entries|length %}{% endfor %}
+            `    {% for group in grouped_absensi %}{% set total = total + group.entries|length %}{% endfor %}
             {{ total }}
         </div>
         <div style="color:var(--text-muted);">Data Ditampilkan</div>
@@ -52,8 +52,7 @@
             <a href="/admin" class="btn btn-outline btn-sm">Reset</a>
         </form>
     </div>
-
-    <!-- PETA -->
+    
     <div id="map-container"><div id="map" style="height:400px;"></div></div>
 
     {% if grouped_absensi %}
@@ -123,7 +122,6 @@
     <form action="/admin/hapus_admin" method="POST" class="confirm-form"><button class="btn btn-danger"><i class="fas fa-trash-alt"></i> Hapus Admin</button></form>
 </div>
 
-<!-- MODAL EDIT PEGAWAI -->
 <div id="edit-modal" class="modal-overlay" style="display: none;">
     <div class="modal-dialog">
         <h3><i class="fas fa-edit"></i> Edit Pegawai</h3>
