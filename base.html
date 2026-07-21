@@ -17,7 +17,7 @@
     </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <img src="{{ url_for('static', filename='logo-pertamina.png') }}" alt="Pertamina" class="sidebar-logo">
@@ -39,7 +39,7 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+
     <main class="main-content">
         <!-- TOPBAR -->
         <header class="topbar">
@@ -61,7 +61,7 @@
             </div>
         </header>
 
-        <!-- CONTENT AREA -->
+    
         <div class="content-area">
             {% block content %}{% endblock %}
         </div>
@@ -74,7 +74,7 @@
     <!-- TOAST GLOBAL -->
     <div id="toast-global"></div>
 
-    <!-- MODAL KONFIRMASI -->
+
     <div id="confirm-modal" class="modal-overlay" style="display: none;">
         <div class="modal-dialog">
             <h3><i class="fas fa-question-circle"></i> Konfirmasi</h3>
@@ -86,10 +86,10 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Toast & Modal Script -->
+
     <script>
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-global');
@@ -142,7 +142,7 @@
             if (e.target === this) { this.style.display = 'none'; pendingForm = null; }
         });
 
-        // Sidebar toggle (hanya di ponsel)
+
         const menuToggle = document.getElementById('menu-toggle');
         const sidebar = document.getElementById('sidebar');
         menuToggle.addEventListener('click', () => {
