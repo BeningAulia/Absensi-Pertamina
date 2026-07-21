@@ -28,7 +28,6 @@ os.makedirs('static/css', exist_ok=True)
 os.makedirs('static/js', exist_ok=True)
 os.makedirs('templates', exist_ok=True)
 
-# ------------------- Cache Wajah (Global) -------------------
 known_faces_cache = []
 
 def refresh_face_cache():
@@ -36,7 +35,6 @@ def refresh_face_cache():
     pegawai_list = Pegawai.query.filter_by(status='aktif').all()
     known_faces_cache = [(p.id, p.face_encodings) for p in pegawai_list if p.face_encodings]
 
-# ------------------- Decorator Admin -------------------
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -46,7 +44,6 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
-# ------------------- Helper -------------------
 def is_ajax():
     return (request.headers.get('X-Requested-With') == 'XMLHttpRequest') or request.is_json
 
@@ -60,7 +57,6 @@ def is_duplicate_face(new_encodings, existing_pegawai_list):
                 return pegawai.nama, pegawai.nip
     return None
 
-# ------------------- Halaman Absensi -------------------
 @app.route('/')
 def index():
     return render_template('index_full.html')
@@ -136,7 +132,6 @@ def absen():
         'notif_status': notif_status
     })
 
-# ------------------- Registrasi Pegawai -------------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -248,7 +243,6 @@ def register():
 
     return render_template('register.html')
 
-# ------------------- Admin: Registrasi -------------------
 @app.route('/admin/register', methods=['GET', 'POST'])
 def admin_register():
     if Admin.query.first():
@@ -281,7 +275,6 @@ def admin_register():
 
     return render_template('admin_register.html')
 
-# ------------------- Admin: Login -------------------
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if 'admin_id' in session:
@@ -303,7 +296,6 @@ def admin_login():
 
     return render_template('admin_login.html', admin_exists=admin_exists)
 
-# ------------------- Admin: Logout -------------------
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_id', None)
@@ -311,7 +303,6 @@ def admin_logout():
     flash('Anda telah logout.', 'info')
     return redirect(url_for('index'))
 
-# ------------------- Dashboard Admin (log lengkap, peta sesuai filter) -------------------
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
@@ -378,7 +369,6 @@ def admin_dashboard():
                            pending_list=pending_list,
                            search=search)
 
-# ------------------- Download Excel per Hari -------------------
 @app.route('/admin/download_absensi_harian/<string:tanggal>')
 @admin_required
 def download_absensi_harian(tanggal):
@@ -437,7 +427,6 @@ def download_absensi_harian(tanggal):
         download_name=f'absensi_{tanggal}.xlsx'
     )
 
-# ------------------- Admin: Hapus Absensi -------------------
 @app.route('/admin/hapus_absensi/<int:id>', methods=['POST'])
 @admin_required
 def hapus_absensi(id):
@@ -449,7 +438,6 @@ def hapus_absensi(id):
     flash('Data absensi dihapus.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ------------------- Admin: Hapus Semua Absensi per Tanggal -------------------
 @app.route('/admin/hapus_absensi_tanggal/<string:tanggal>', methods=['POST'])
 @admin_required
 def hapus_absensi_tanggal(tanggal):
@@ -468,7 +456,6 @@ def hapus_absensi_tanggal(tanggal):
     flash(f'{deleted_count} data absensi pada {tanggal} berhasil dihapus.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ------------------- Admin: Hapus Pegawai -------------------
 @app.route('/admin/hapus_pegawai/<int:id>', methods=['POST'])
 @admin_required
 def hapus_pegawai(id):
@@ -490,7 +477,6 @@ def hapus_pegawai(id):
     flash('Pegawai dan data absensi terkait dihapus.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ------------------- Admin: Hapus Akun Admin -------------------
 @app.route('/admin/hapus_admin', methods=['POST'])
 @admin_required
 def hapus_admin():
@@ -504,7 +490,6 @@ def hapus_admin():
     flash('Tidak ada admin.', 'error')
     return redirect(url_for('admin_dashboard'))
 
-# ============ FITUR PERSETUJUAN ============
 
 @app.route('/admin/approve_pegawai/<int:id>', methods=['POST'])
 @admin_required
@@ -553,7 +538,6 @@ def approve_all():
     flash(f'{len(pending_pegawai)} pegawai berhasil diaktifkan.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ------------------- Admin: Edit Pegawai -------------------
 @app.route('/admin/edit_pegawai/<int:id>', methods=['POST'])
 @admin_required
 def edit_pegawai(id):
@@ -580,12 +564,10 @@ def edit_pegawai(id):
     flash(f'Data pegawai {nama} ({nip}) berhasil diperbarui.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ------------------- Favicon -------------------
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-# ------------------- Inisialisasi -------------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
