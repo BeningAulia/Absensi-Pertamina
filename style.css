@@ -27,7 +27,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ========== SIDEBAR ========== */
 .sidebar {
     width: var(--sidebar-width);
     background: linear-gradient(180deg, var(--pr-blue-dark) 0%, var(--pr-blue) 100%);
@@ -50,7 +49,7 @@ body {
 }
 
 .sidebar-logo {
-    height: 80px;                /* diperbesar dari 64px */
+    height: 80px;                
     margin-bottom: 8px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
@@ -106,7 +105,6 @@ body {
     opacity: 0.6;
 }
 
-/* ========== MAIN CONTENT ========== */
 .main-content {
     margin-left: var(--sidebar-width);
     flex: 1;
@@ -166,7 +164,6 @@ body {
     margin: 0 auto;
 }
 
-/* ========== COMPONENTS ========== */
 .card {
     background: var(--card-bg);
     border-radius: 12px;
@@ -253,7 +250,6 @@ body {
     background: #F8FAFC;
 }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -300,7 +296,6 @@ body {
     margin-top: 8px;
 }
 
-/* Form */
 .form-group {
     margin-bottom: 18px;
     text-align: left;
@@ -329,7 +324,6 @@ body {
     outline: none;
 }
 
-/* Toast */
 #toast-global {
     position: fixed;
     top: 24px;
@@ -375,7 +369,6 @@ body {
 }
 .toast.removing { opacity: 0; transform: translateX(120%); }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -404,7 +397,6 @@ body {
     justify-content: center;
 }
 
-/* Camera / video */
 .video-box {
     border: 2px solid var(--pr-red);
     border-radius: 8px;
@@ -424,7 +416,6 @@ video {
 
 canvas { display: none; }
 
-/* File preview */
 .file-preview-container {
     display: flex;
     flex-wrap: wrap;
@@ -476,7 +467,6 @@ canvas { display: none; }
     flex-wrap: wrap;
 }
 
-/* Modal Camera */
 .camera-modal-overlay {
     position: fixed;
     inset: 0;
@@ -501,7 +491,6 @@ canvas { display: none; }
     margin: 16px auto;
 }
 
-/* Map */
 #map-container {
     margin-bottom: 20px;
     border-radius: 8px;
@@ -514,7 +503,6 @@ canvas { display: none; }
     width: 100%;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     padding: 16px;
@@ -524,7 +512,6 @@ canvas { display: none; }
     margin-top: auto;
 }
 
-/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .sidebar {
         width: 60px;
@@ -540,7 +527,7 @@ canvas { display: none; }
         padding: 12px;
     }
     .sidebar-logo {
-        height: 40px;   /* lebih kecil di tablet agar pas di sidebar mini */
+        height: 40px;  
     }
     .main-content {
         margin-left: 60px;
@@ -586,6 +573,6 @@ canvas { display: none; }
         min-width: 400px;
     }
     .sidebar-logo {
-        height: 64px;   /* kembali ke ukuran wajar di ponsel jika sidebar terbuka */
+        height: 64px;   
     }
 }
