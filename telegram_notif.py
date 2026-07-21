@@ -1,12 +1,9 @@
 import requests
 
-# Token Bot Telegram
 TELEGRAM_BOT_TOKEN = "8615936757:AAHHnkk1LzVGLat-cb0zyYPIinlBjwQ2dIM"
 
-# Chat ID Admin (fallback)
 ADMIN_CHAT_ID = "7241428393"
 
-# Chat ID Grup (Diperoleh dari getUpdates)
 GROUP_CHAT_ID = "-5286297405"
 
 
