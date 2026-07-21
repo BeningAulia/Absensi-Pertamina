@@ -123,7 +123,6 @@
     <form action="/admin/hapus_admin" method="POST" class="confirm-form"><button class="btn btn-danger"><i class="fas fa-trash-alt"></i> Hapus Admin</button></form>
 </div>
 
-<!-- MODAL EDIT PEGAWAI -->
 <div id="edit-modal" class="modal-overlay" style="display: none;">
     <div class="modal-dialog">
         <h3><i class="fas fa-edit"></i> Edit Pegawai</h3>
@@ -147,7 +146,7 @@
 
 {% block scripts %}
 <script>
-    // Data peta dari server (hanya hari ini atau sesuai filter)
+    
     const mapData = [
         {% for m in map_data %}
             {
