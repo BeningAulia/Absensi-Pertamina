@@ -11,7 +11,7 @@
         <i class="fas fa-clock" style="color:var(--pr-red); font-size:24px;"></i>
         <div class="value">
             {% set total = 0 %}
-            {% for group in grouped_absensi %}{% set total = total + group.entries|length %}{% endfor %}
+                {% for group in grouped_absensi %}{% set total = total + group.entries|length %}{% endfor %}
             {{ total }}
         </div>
         <div style="color:var(--text-muted);">Data Ditampilkan</div>
